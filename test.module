@@ -1,0 +1,76 @@
+<?php
+// $Id$ 
+
+/**
+ * @file
+ * Test module for Drupal wizardry.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function test_menu() {
+  $items['test'] = array(
+    'title' => t('Test Page'),
+    'description' => t('Sample page for testing output.'),
+    'page callback' => 'test_output',
+    'access callback' => user_access('access test page'),
+  );
+  $items['test/%test'] = array(
+    'title callback' => 'test_title',
+    'title arguments' => array(1),
+    'description' => t('Sample page for testing output.'),
+    'page callback' => 'test_output',
+    'page arguments' => array(1),
+    'access callback' => user_access('access test page'),
+    'type' => MENU_CALLBACK,
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function test_perm() {
+  return array('access test page');
+}
+
+function test_title($title) {
+  return t("Testing for '!title':", array("!title" => $title));
+}
+
+function test_load($input) {
+  return strtoupper($input);
+}
+
+function test_output($output = '', $type = '') {
+  $query = db_query("SELECT nid FROM node WHERE type = '$type'");
+  while ($fetch = db_fetch_object($query)) {
+    $node = node_load($fetch->nid);
+    $output .= "<p>". $node->title ."</p>";
+  }
+  $output .= drupal_get_form('test_output_2');
+  return $output;
+}
+
+function test_output_2() {
+  $form['info'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Type something'),
+  );
+  $form['types'] = array(
+    '#type' => 'select',
+    '#title' => 'Select a content type',
+    '#options' => node_get_types('names'),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('submit'),
+  );
+  return $form;
+}
+
+function test_output_2_submit($form, &$form_state) {
+  drupal_set_message("You selected '". $form_state['values']['types'] ."'.");
+  $form_state['redirect'] = 'test/' . $form_state['values']['info'] .'/'. $form_state['values']['types'];
+}

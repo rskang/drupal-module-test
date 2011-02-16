@@ -1,0 +1,6 @@
+; $Id$ 
+name = Test
+description = "Test module for spotting errors!"
+package = "Drupal Module Test"
+version = VERSION
+core = 6.x
